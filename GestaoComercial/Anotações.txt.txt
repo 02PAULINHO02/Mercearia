@@ -1,4 +1,0 @@
-Tarefas para hoje:
-
-- Criar método para Inserir
-- Criar método Alterar
