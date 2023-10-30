@@ -1,4 +1,5 @@
 ﻿using Models;
+using System.Data;
 using System.Data.SqlClient;
 using System.Security.Cryptography;
 
@@ -6,92 +7,125 @@ namespace DAL
 {
     public class UsuarioDAL
     {
-        public void Inserir(Usuario _usuario)
+        public void Inserir(Usuario _usuario, SqlTransaction _transaction = null)
         {
-            SqlConnection cn = new SqlConnection(Constantes.StringDeConexao);
+            SqlTransaction transaction = _transaction;
 
-            try
+            using (SqlConnection cn = new SqlConnection(Conexao.StringDeConexao))
             {
-                SqlCommand cmd = cn.CreateCommand();
+                using (SqlCommand cmd = new SqlCommand("INSERT INTO Usuario(Nome, NomeUsuario, Senha, Ativo) VALUES(@Nome, @NomeUsuario, @Senha, @Ativo)"))
+                {
+                    try
+                    {
+                        cmd.CommandType = System.Data.CommandType.Text;
 
+                        cmd.Parameters.AddWithValue("@Nome", _usuario.Nome);
+                        cmd.Parameters.AddWithValue("@NomeUsuario", _usuario.NomeUsuario);
+                        cmd.Parameters.AddWithValue("@Senha", _usuario.Senha);
+                        cmd.Parameters.AddWithValue("@Ativo", _usuario.Ativo);
 
-                cmd.CommandText = "INSERT INTO Usuario(Nome, NomeUsuario, Senha, Ativo) VALUES(@Nome, @NomeUsuario, @Senha, @Ativo)";
+                        if (_transaction == null)
+                        {
+                            cn.Open();
+                            transaction = cn.BeginTransaction();
+                        }
 
-                cmd.CommandType = System.Data.CommandType.Text;
+                        cmd.Transaction = transaction;
+                        cmd.Connection = transaction.Connection;
 
-                cmd.Parameters.AddWithValue("@Nome", _usuario.Nome);
-                cmd.Parameters.AddWithValue("@NomeUsuario", _usuario.NomeUsuario);
-                cmd.Parameters.AddWithValue("@Senha", _usuario.Senha);
-                cmd.Parameters.AddWithValue("@Ativo", _usuario.Ativo);
+                        cmd.ExecuteNonQuery();
 
-                cn.Open();
-                cmd.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
+                        if (_transaction == null)
+                            transaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (transaction.Connection != null && transaction.Connection.State == ConnectionState.Open)
+                            transaction.Rollback();
 
-                throw new Exception("Ocorreu um erro ao tentar inserir o usuário no banco de dados.", ex);
-            }
-            finally
-            {
-                cn.Close();
+                        throw new Exception("Ocorreu um erro ao tentar inserir o usuário no banco de dados.", ex);
+                    }
+                }
             }
         }
-        public void Alterar(Usuario _usuario)
+        public void Alterar(Usuario _usuario, SqlTransaction _transaction = null)
         {
-            SqlConnection cn = new SqlConnection(Constantes.StringDeConexao);
-            try
+            SqlTransaction transaction = _transaction;
+
+            using (SqlConnection cn = new SqlConnection(Conexao.StringDeConexao))
             {
-                SqlCommand cmd = cn.CreateCommand();
+                using (SqlCommand cmd = new SqlCommand("UPDATE Usuario SET Nome = @Nome, @NomeUsuario = NomeUsuario, @Senha = Senha, @Ativo = Ativo WHERE Id = @Id"))
+                {
+                    try
+                    {
+                        cmd.CommandType = System.Data.CommandType.Text;
 
-                cmd.CommandText = "UPDATE Usuario SET(Nome = @Nome, @NomeUsuario = NomeUsuario, @Senha = Senha, @Ativo = Ativo) WHERE Id = @Id";
+                        cmd.Parameters.AddWithValue("@Id", _usuario.Id);
+                        cmd.Parameters.AddWithValue("@Nome", _usuario.Nome);
+                        cmd.Parameters.AddWithValue("@NomeUsuario", _usuario.NomeUsuario);
+                        cmd.Parameters.AddWithValue("@Senha", _usuario.Senha);
+                        cmd.Parameters.AddWithValue("@Ativo", _usuario.Ativo);
 
-                cmd.CommandType = System.Data.CommandType.Text;
+                        if (_transaction == null)
+                        {
+                            cn.Open();
+                            transaction = cn.BeginTransaction();
 
-                cmd.Parameters.AddWithValue("@Id", _usuario.Id);
-                cmd.Parameters.AddWithValue("@Nome", _usuario.Nome);
-                cmd.Parameters.AddWithValue("@NomeUsuario", _usuario.NomeUsuario);
-                cmd.Parameters.AddWithValue("@Senha", _usuario.Senha);
-                cmd.Parameters.AddWithValue("@Ativo", _usuario.Ativo);
+                        }
+                        cmd.Transaction = transaction;
+                        cmd.Connection = transaction.Connection;
 
-                cn.Open();
-                cmd.ExecuteNonQuery();
+                        cmd.ExecuteNonQuery();
+
+                        if (_transaction == null)
+                            transaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (transaction.Connection != null && transaction.Connection.State == ConnectionState.Open)
+                            transaction.Rollback();
+
+                        throw new Exception("Ocorreu um erro ao tentar atualizar o usuário no banco de dados.", ex);
+                    }
+                }
             }
-            catch (Exception ex)
-            {
-
-                throw new Exception("Ocorreu um erro ao tentar atualizar o usuário no banco de dados.", ex);
-            }
-            finally
-            {
-                cn.Close();
-            }
-
         }
-        public void Excluir(int _id)
+        public void Excluir(int _id, SqlTransaction _transaction = null)
         {
-            SqlConnection cn = new SqlConnection(Constantes.StringDeConexao);
+            SqlTransaction transaction = _transaction;
 
-            try
+            using (SqlConnection cn = new SqlConnection(Conexao.StringDeConexao))
             {
-                SqlCommand cmd = cn.CreateCommand();
+                using (SqlCommand cmd = new SqlCommand("DELETE FROM Usuario WHERE Id = @Id"))
+                {
+                    try
+                    {
+                        cmd.CommandType = System.Data.CommandType.Text;
 
-                cmd.CommandText = "DELETE FROM Usuario WHERE Id = @Id";
+                        cmd.Parameters.AddWithValue("@Id", _id);
 
-                cmd.CommandType = System.Data.CommandType.Text;
+                        if (_transaction == null)
+                        {
+                            cn.Open();
+                            transaction = cn.BeginTransaction();
+                        }
 
-                cmd.Parameters.AddWithValue("@Id", _id);
+                        cmd.Transaction = transaction;
+                        cmd.Connection = transaction.Connection;
 
-                cn.Open();
-                cmd.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Ocorreu um erro ao tentar deletar o usuario no banco de dados.", ex);
-            }
-            finally
-            {
-                cn.Close();
+                        cmd.ExecuteNonQuery();
+
+                        if (_transaction == null)
+                            transaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (transaction.Connection != null && transaction.Connection.State == ConnectionState.Open)
+                            transaction.Rollback();
+
+                        throw new Exception("Ocorreu um erro ao tentar deletar o usuario no banco de dados.", ex);
+                    }
+                }
             }
         }
         public List<Usuario> BuscarTodos()
@@ -99,7 +133,7 @@ namespace DAL
             List<Usuario> usuarioList = new List<Usuario>();
             Usuario usuario;
 
-            SqlConnection cn = new SqlConnection(Constantes.StringDeConexao);
+            SqlConnection cn = new SqlConnection(Conexao.StringDeConexao);
 
             try
             {
@@ -116,12 +150,7 @@ namespace DAL
                 {
                     while (rd.Read())
                     {
-                        usuario = new Usuario();
-                        usuario.Id = (int)rd["Id"];
-                        usuario.Nome = rd["Nome"].ToString();
-                        usuario.NomeUsuario = rd["NomeUsuario"].ToString();
-                        usuario.Senha = rd["Senha"].ToString();
-                        usuario.Ativo = Convert.ToBoolean(rd["Ativo"]);
+                        usuario = PreencherObjeto(rd);
                         usuarioList.Add(usuario);
                     }
                 }
@@ -137,11 +166,22 @@ namespace DAL
                 cn.Close();
             }
         }
+        private static Usuario PreencherObjeto(SqlDataReader rd)
+        {
+            Usuario usuario = new Usuario();
+            usuario.Id = (int)rd["Id"];
+            usuario.Nome = rd["Nome"].ToString();
+            usuario.NomeUsuario = rd["NomeUsuario"].ToString();
+            usuario.Senha = rd["Senha"].ToString();
+            usuario.Ativo = Convert.ToBoolean(rd["Ativo"]);
+            return usuario;
+        }
+
         public Usuario BuscarPorId(int _id)
         {
             Usuario usuario;
 
-            SqlConnection cn = new SqlConnection(Constantes.StringDeConexao);
+            SqlConnection cn = new SqlConnection(Conexao.StringDeConexao);
 
             try
             {
@@ -161,11 +201,7 @@ namespace DAL
                     usuario = new Usuario();
                     if (rd.Read())
                     {
-                        usuario.Id = (int)rd["Id"];
-                        usuario.Nome = rd["Nome"].ToString();
-                        usuario.NomeUsuario = rd["NomeUsuario"].ToString();
-                        usuario.Senha = rd["Senha"].ToString();
-                        usuario.Ativo = Convert.ToBoolean(rd["NomeUsuario"]);
+                        usuario = PreencherObjeto(rd);
                     }
                 }
                 return usuario;
@@ -184,7 +220,7 @@ namespace DAL
             List<Usuario> usuarioList = new List<Usuario>();
             Usuario usuario;
 
-            SqlConnection cn = new SqlConnection(Constantes.StringDeConexao);
+            SqlConnection cn = new SqlConnection(Conexao.StringDeConexao);
 
             try
             {
@@ -203,13 +239,7 @@ namespace DAL
                 {
                     while (rd.Read())
                     {
-                        usuario = new Usuario();
-                        usuario.Id = (int)rd["Id"];
-                        usuario.Nome = rd["Nome"].ToString();
-                        usuario.NomeUsuario = rd["NomeUsuario"].ToString();
-                        usuario.Senha = rd["Senha"].ToString();
-                        usuario.Ativo = Convert.ToBoolean(rd["Ativo"]);
-                        usuarioList.Add(usuario);
+                        usuario = PreencherObjeto(rd);
                     }
                 }
                 return usuarioList;
@@ -228,7 +258,7 @@ namespace DAL
         {
             Usuario usuario;
 
-            SqlConnection cn = new SqlConnection(Constantes.StringDeConexao);
+            SqlConnection cn = new SqlConnection(Conexao.StringDeConexao);
 
             try
             {
@@ -236,7 +266,7 @@ namespace DAL
 
 
                 cmd.CommandText = "SELECT Id, Nome, NomeUsuario, Senha, Ativo FROM Usuario WHERE NomeUsuario  = @NomeUsuario";
-              
+
                 cmd.CommandType = System.Data.CommandType.Text;
 
                 cmd.Parameters.AddWithValue("@NomeUsuario", _nomeUsuario);
@@ -248,11 +278,7 @@ namespace DAL
                     usuario = new Usuario();
                     if (rd.Read())
                     {
-                        usuario.Id = (int)rd["Id"];
-                        usuario.Nome = rd["Nome"].ToString();
-                        usuario.NomeUsuario = rd["NomeUsuario"].ToString();
-                        usuario.Senha = rd["Senha"].ToString();
-                        usuario.Ativo = Convert.ToBoolean(rd["Ativo"]);
+                        usuario = PreencherObjeto(rd);
                     }
                 }
                 return usuario;
