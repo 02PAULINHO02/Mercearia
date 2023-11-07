@@ -51,6 +51,7 @@
             // 
             // comboBoxBuscarPor
             // 
+            this.comboBoxBuscarPor.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBoxBuscarPor.FormattingEnabled = true;
             this.comboBoxBuscarPor.Items.AddRange(new object[] {
             "Nome",

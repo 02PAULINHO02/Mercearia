@@ -59,5 +59,11 @@ namespace UIWinFormsApp
             bindingSourceUsuario.RemoveCurrent();
             MessageBox.Show("REgistro excluido com sucesso!");
         }
+
+        private void FormBuscarUsuario_Load(object sender, EventArgs e)
+        {
+            comboBoxBuscarPor.SelectedIndex = comboBoxBuscarPor.Items.Count - 1;
+            buttonBuscar_Click(null, null);
+        }
     }
 }
